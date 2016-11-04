@@ -1,4 +1,5 @@
-﻿using Rocket.API;
+﻿using Steamworks;
+using Rocket.API;
 using Rocket;
 using Rocket.API.Collections;
 using Rocket.Core.Logging;
@@ -7,7 +8,6 @@ using Rocket.Unturned;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -188,7 +188,7 @@ namespace dynmap.core
 
             //Přidání hráčů do listu při načtení pluginu
             int f = 0;
-            foreach (SDG.Unturned.SteamPlayer plr in SDG.Unturned.Provider.Players)
+            foreach (SDG.Unturned.SteamPlayer plr in SDG.Unturned.Provider.clients)
             {
                 UnturnedPlayer unturnedPlayer = UnturnedPlayer.FromSteamPlayer(plr);
                 Nicks.Add(unturnedPlayer.CSteamID);
