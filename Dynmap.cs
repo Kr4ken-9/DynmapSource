@@ -32,7 +32,7 @@ namespace dynmap.core
             PrivateKey = "MySecretPrivateKey";
             syncInterval = 5000;
             WebCoreAddress = "http://localhost";
-            displayInChat = true;
+            displayInChat = false;
         }
     }
 
