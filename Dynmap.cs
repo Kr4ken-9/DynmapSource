@@ -1,13 +1,9 @@
 ﻿using Steamworks;
 using Rocket.API;
-using Rocket;
-using Rocket.API.Collections;
-using Rocket.Core.Logging;
 using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
-using SDG.Unturned;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +11,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Timers;
-using UnityEngine;
 
 namespace dynmap.core
 {
