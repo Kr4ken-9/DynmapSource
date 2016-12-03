@@ -28,6 +28,7 @@ namespace dynmap.core
             syncInterval = 5000;
             WebCoreAddress = "http://localhost";
             displayInChat = false;
+
         }
     }
 
@@ -53,7 +54,8 @@ namespace dynmap.core
         public string characterName;
         public int rotation;
         public string playerStatus;
-        public Boolean PlayerDeath;
+        public string vehicleType;
+        public string datavar;
 
 
         protected override void Load()
@@ -209,7 +211,80 @@ namespace dynmap.core
                 ShowCords();
             };
         }
+        public class DynmapCommand : IRocketCommand
+        {
+            public int SyncInterval;
+            public Timer myTimer;
 
+            public List<string> Aliases
+            {
+                get
+                {
+                    return new List<string>()
+                    {
+
+                    };
+                }
+            }
+
+            public AllowedCaller AllowedCaller
+            {
+                get
+                {
+                    return AllowedCaller.Both;
+                }
+            }
+
+            public string Help
+            {
+                get
+                {
+                    return "/syncint <SyncInterval>";
+                }
+            }
+
+            public string Name
+            {
+                get
+                {
+                    return "syncInt";
+                }
+            }
+
+            public List<string> Permissions
+            {
+                get
+                {
+                    return new List<string>()
+                {
+                    "Dynmap.SyncInt"
+                };
+                }
+            }
+
+            public string Syntax
+            {
+                get
+                {
+                    return "<SyncInterval>";
+                }
+            }
+
+            public void Execute(IRocketPlayer caller, string[] command)
+            {
+                if (command.Length == 0)
+                {
+                    UnturnedChat.Say(caller, "invalid parameter");
+                    return;
+                }
+                if (command.Length > 2 && int.TryParse(command[0], out SyncInterval))
+                {
+                    myTimer.Interval = SyncInterval;
+                    
+                }
+
+            }
+        }
         //Zjištění souřadnic
         private void callFunc(object sender, EventArgs e)
         {
@@ -222,6 +297,7 @@ namespace dynmap.core
             data = string.Empty;
             url = string.Empty;
             encoded = string.Empty;
+            
 
             //Pro každého hráče zjistí jméno, CSteamID a pozici
             for (int i = 1; i <= count; i++)
@@ -229,12 +305,21 @@ namespace dynmap.core
                 UnturnedPlayer player = UnturnedPlayer.FromCSteamID(Nicks[i - 1]);
                 characterName = player.CharacterName.Replace(";", "&#59").Replace("[", "&#91").Replace("]", "&#93").Replace("=", "&#61");
                 rotation = Convert.ToInt32(player.Rotation);
-                
-                if (player.IsAdmin == true) { playerStatus = "admin"; } else if (player.IsPro == true) { playerStatus = "pro"; } else { playerStatus = "player"; }
-                if (Configuration.Instance.displayInChat == true) {  UnturnedChat.Say(player, player.Position + "=Position"); }
-                if (player.Features.VanishMode == false) { data = data + "[Charactername=" + characterName + ";CSteamID=" + player.CSteamID + ";Position=" + player.Position + ";Rotation=" + rotation + ";PlayerStatus=" + playerStatus +  ";Death=" + player.Player.life.isDead.ToString() + ";Vehicle=" + player.IsInVehicle.ToString() + "]"; };
 
-                //if (player.Features.VanishMode == false && player.IsInVehicle == true) { data = data + "[Charactername=" + characterName + ";CSteamID=" + player.CSteamID + ";Position=" + player.Position + ";Rotation=" + rotation + ";PlayerStatus=" + playerStatus + ";Death=" + player.Player.life.isDead.ToString() + ";Vehicle=" + player.IsInVehicle.ToString() + ";VehicleEngine=" + player.CurrentVehicle.asset.engine.ToString() + "]"; };
+                if (player.IsAdmin == true) { playerStatus = "admin"; } else if (player.IsPro == true) { playerStatus = "pro"; } else if (player.Dead == true) { playerStatus = "dead"; } else { playerStatus = "player"; }
+                if (Configuration.Instance.displayInChat == true){  UnturnedChat.Say(player, player.Position + "=Position"); }
+                if (player.Features.VanishMode == false)
+                {
+                    if (player.IsInVehicle == true)
+                    {
+                        datavar = data + "[Charactername=" + characterName + ";CSteamID=" + player.CSteamID + ";Position=" + player.Position + ";Rotation=" + rotation + ";PlayerStatus=" + playerStatus + ";VehicleType=" + player.CurrentVehicle.asset.engine.ToString() + "]";
+                    }
+                    else
+                    {
+                        datavar = data + "[Charactername=" + characterName + ";CSteamID=" + player.CSteamID + ";Position=" + player.Position + ";Rotation=" + rotation + ";PlayerStatus=" + playerStatus + ";VehicleType=false" + "]";
+                    }
+                    data = datavar;
+                };
             }
 
             //Odešle data na server
