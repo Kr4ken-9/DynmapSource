@@ -211,80 +211,7 @@ namespace dynmap.core
                 ShowCords();
             };
         }
-        public class DynmapCommand : IRocketCommand
-        {
-            public int SyncInterval;
-            public Timer myTimer;
 
-            public List<string> Aliases
-            {
-                get
-                {
-                    return new List<string>()
-                    {
-
-                    };
-                }
-            }
-
-            public AllowedCaller AllowedCaller
-            {
-                get
-                {
-                    return AllowedCaller.Both;
-                }
-            }
-
-            public string Help
-            {
-                get
-                {
-                    return "/syncint <SyncInterval>";
-                }
-            }
-
-            public string Name
-            {
-                get
-                {
-                    return "syncInt";
-                }
-            }
-
-            public List<string> Permissions
-            {
-                get
-                {
-                    return new List<string>()
-                {
-                    "Dynmap.SyncInt"
-                };
-                }
-            }
-
-            public string Syntax
-            {
-                get
-                {
-                    return "<SyncInterval>";
-                }
-            }
-
-            public void Execute(IRocketPlayer caller, string[] command)
-            {
-                if (command.Length == 0)
-                {
-                    UnturnedChat.Say(caller, "invalid parameter");
-                    return;
-                }
-                if (command.Length > 2 && int.TryParse(command[0], out SyncInterval))
-                {
-                    myTimer.Interval = SyncInterval;
-                    
-                }
-
-            }
-        }
         //Zjištění souřadnic
         private void callFunc(object sender, EventArgs e)
         {
@@ -316,7 +243,7 @@ namespace dynmap.core
                     }
                     else
                     {
-                        datavar = data + "[Charactername=" + characterName + ";CSteamID=" + player.CSteamID + ";Position=" + player.Position + ";Rotation=" + rotation + ";PlayerStatus=" + playerStatus + ";VehicleType=false" + "]";
+                        datavar = data + "[Charactername=" + characterName + ";CSteamID=" + player.CSteamID + ";Position=" + player.Position + ";Rotation=" + rotation + ";PlayerStatus=" + playerStatus + ";VehicleType=" + false + "]";
                     }
                     data = datavar;
                 };
