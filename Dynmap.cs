@@ -21,6 +21,7 @@ namespace dynmap.core
         public int syncInterval;
         public string WebCoreAddress;
         public bool displayInChat;
+        public bool displayIfVanish;
 
         public void LoadDefaults()
         {
@@ -28,6 +29,7 @@ namespace dynmap.core
             syncInterval = 5000;
             WebCoreAddress = "http://localhost";
             displayInChat = false;
+            displayIfVanish = false;
 
         }
     }
@@ -235,7 +237,7 @@ namespace dynmap.core
 
                 if (player.IsAdmin == true) { playerStatus = "admin"; } else if (player.IsPro == true) { playerStatus = "pro"; } else if (player.Dead == true) { playerStatus = "dead"; } else { playerStatus = "player"; }
                 if (Configuration.Instance.displayInChat == true){  UnturnedChat.Say(player, player.Position + "=Position"); }
-                if (player.Features.VanishMode == false)
+                if (Configuration.Instance.displayIfVanish == false && player.Features.VanishMode == false || Configuration.Instance.displayIfVanish == true)
                 {
                     if (player.IsInVehicle == true)
                     {
