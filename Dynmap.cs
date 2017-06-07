@@ -213,6 +213,19 @@ namespace dynmap.core
                 ShowCords();
             };
         }
+        protected override void Unload()
+        {
+            Rocket.Core.Logging.Logger.Log("Unloading ...");
+            int f = 0;
+            foreach (SDG.Unturned.SteamPlayer plr in SDG.Unturned.Provider.clients)
+            {
+                UnturnedPlayer unturnedPlayer = UnturnedPlayer.FromSteamPlayer(plr);
+                Nicks.Remove(unturnedPlayer.CSteamID);
+                f++;
+
+            }
+            
+        }
 
         //Zjištění souřadnic
         private void callFunc(object sender, EventArgs e)
