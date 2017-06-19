@@ -7,14 +7,20 @@
         <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" />
         <link rel="stylesheet" type="text/css" href="css/css_map.php" />     
     </head>
-    <body>       
+    <body>
+           
         <div id="main">
+        
             <div id="info"></div>
             <img id="mainImage">
             <div id="positionFrame">
                 <div id="positionFrameWrap"></div>
             </div>
         </div>
+<label class="switch">
+  <input id="switched" type="checkbox">
+  <div class="slider round"></div>
+</label>
         <div id="loadinsg"></div>
         <div id="version">Version: <?php echo $version; ?>.
         <br />Developed by LinhyCZ, <a href="http://linhy.cz">http://linhy.cz</a>.

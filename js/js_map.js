@@ -120,7 +120,16 @@ function sendRequest() {
 	var map = map.split("=");
 	var map = map[1];
 	$("#info").html("Current map: " + map + "<br>Currently " + players + " player" + s + " online");
-	$("#mainImage").attr("src", ".maps/"+map+".png");
+	
+
+	if(document.getElementById("switched").checked == true)
+		{
+			$("#mainImage").attr("src", ".maps/"+map+"_chart.png");
+		}
+	else
+	{
+		$("#mainImage").attr("src", ".maps/"+map+".png");
+	}
 	
 	naturalHeight = $("#mainImage").get(0).naturalHeight;
 	naturalWidth = $("#mainImage").get(0).naturalWidth;
@@ -280,7 +289,7 @@ function sendRequest() {
 				$("#positionFrameWrap").html(adding);
 
 				var scale = document.getElementById(playerCSteamID+"_cursor").style;
-				scale.opacity = .7;
+				scale.opacity = .8;
 				if (playerVehicleType == "PLANE")
 				{
 					scale.width = 22+"px";
