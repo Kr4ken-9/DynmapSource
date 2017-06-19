@@ -120,14 +120,24 @@ namespace dynmap.core
 
             //Příjem názvů map, které se ještě nenacházejí na serveru
             var sentMessage = false;
-
+            var ChartUpload = "";
+            var ChartUpload2 = @"/Map.png";
             uploadMaps = output.Split(';');
-            for (var o = 0; o < uploadMaps.Length; o++)
+            var ocache = 0;
+            for (var o = 0; o < uploadMaps.Length * 2; o++)
             {
+                
                 if (sentMessage == false) { Rocket.Core.Logging.Logger.LogWarning("Uploading map files to the server! This may take some time!"); sentMessage = true; };
+                if (o >= uploadMaps.Length)
+                {
+                    ocache = o;
+                    o = ocache - uploadMaps.Length;
+                    ChartUpload = "_chart";
+                    ChartUpload2 = @"/Chart.png";
+                }
                 if (uploadMaps[o] != string.Empty)
                 {
-                    Rocket.Core.Logging.Logger.Log("Uploading map : " + uploadMaps[o]);
+                    Rocket.Core.Logging.Logger.Log("Uploading map : " + uploadMaps[o] + ChartUpload);
                     //Generování TransferID
 
                     RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
@@ -166,26 +176,30 @@ namespace dynmap.core
                     //Nahrání souborů map na server
                     System.Net.WebClient Client = new System.Net.WebClient();
                     Client.Headers.Add("Content-Type", "binary/octet-stream");
-                    byte[] result = Client.UploadFile(Configuration.Instance.WebCoreAddress + "/dynmap-core.php?user=server&do=uploadfile&TransferID=" + Uri.EscapeDataString(TransferID) + "&mapname=" + Uri.EscapeDataString(uploadMaps[o].Split('\\')[uploadMaps[0].Split('\\').Length - 1]), "POST", @"../../../Maps/" + uploadMaps[o] + @"/Map.png");
+                    byte[] result = Client.UploadFile(Configuration.Instance.WebCoreAddress + "/dynmap-core.php?user=server&do=uploadfile&TransferID=" + Uri.EscapeDataString(TransferID) + "&mapname=" + Uri.EscapeDataString(uploadMaps[o].Split('\\')[uploadMaps[0].Split('\\').Length - 1]) + ChartUpload, "POST", @"../../../Maps/" + uploadMaps[o] + ChartUpload2);
                     String s = System.Text.Encoding.UTF8.GetString(result, 0, result.Length);
 
                     if (s == "Error.UploadDone")
                     {
-                        Rocket.Core.Logging.Logger.LogWarning("Uploaded " + uploadMaps[o]);
+                        Rocket.Core.Logging.Logger.LogWarning("Uploaded " + uploadMaps[o] + ChartUpload);
                     }
                     else if (s == "1Error.UploadFailed")
                     {
-                        Rocket.Core.Logging.Logger.LogError("Uploading " + uploadMaps[o] + " failed because the uploaded file exceeds the upload_max_filesize directive in php.ini.");
+                        Rocket.Core.Logging.Logger.LogError("Uploading " + uploadMaps[o] + ChartUpload + " failed because the uploaded file exceeds the upload_max_filesize directive in php.ini.");
                         Rocket.Core.Logging.Logger.LogError("See http://php.net/manual/en/ini.core.php#ini.upload-max-filesize for further information!");
                     }
                     else
                     {
-                        Rocket.Core.Logging.Logger.LogError("Uploading " + uploadMaps[o] + " failed!");
+                        Rocket.Core.Logging.Logger.LogError("Uploading " + uploadMaps[o] + ChartUpload + " failed!");
                     }
                 }
                 if (o == uploadMaps.Length - 1) { Rocket.Core.Logging.Logger.LogWarning("Uploading done!"); };
-
+                if (ChartUpload == "_chart")
+                {
+                    o = ocache;
+                }
             }
+            
 
             //Časovač odesílající data o pozici na server
             myTimer = new System.Timers.Timer();
@@ -224,6 +238,7 @@ namespace dynmap.core
         protected override void Unload()
         {
             Rocket.Core.Logging.Logger.Log("Unloading plugin!");
+            
             int f = 0;
             foreach (SDG.Unturned.SteamPlayer plr in SDG.Unturned.Provider.clients)
             {
@@ -232,6 +247,8 @@ namespace dynmap.core
                 f++;
 
             }
+            ShowCords();
+            shutdown = true;
             myTimer.Enabled = false;
 
         }
@@ -377,7 +394,7 @@ namespace dynmap.core
                     //Rocket.Core.Logging.Logger.Log(SDG.Unturned.Provider.currentServerInfo.);
                     Rocket.Core.Logging.Logger.Log();
                 }*/
-                
+                //Rocket.Core.Logging.Logger(SDG.Unturned.Player.player.name)
                 UnturnedChat.Say(caller, command[0] + " is not a number");
             }
 
