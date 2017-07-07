@@ -247,8 +247,6 @@ namespace dynmap.core
                 f++;
 
             }
-            ShowCords();
-            shutdown = true;
             myTimer.Enabled = false;
 
         }
@@ -299,7 +297,7 @@ namespace dynmap.core
                 {
                     if (n.type != SDG.Unturned.ENodeType.LOCATION) continue;
 
-                    postData = postData + string.Format("{0},{1},{2}", ((SDG.Unturned.LocationNode)n).name, "(" + n.point.x, n.point.z + ")") + ";";
+                    postData = postData + string.Format("{0},{1}", ((SDG.Unturned.LocationNode)n).name + "(" + n.point.x, n.point.z + ")") + ";";
                 }
                 postData = postData + "&data=" + Uri.EscapeDataString(data) + "&privatekey=" + PrivateKey;
                 if (shutdown == true) { postData = "map=" + Uri.EscapeDataString(SDG.Unturned.Provider.map) + "&privatekey=" + PrivateKey; };
