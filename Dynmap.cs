@@ -1,5 +1,4 @@
 ﻿using Steamworks;
-using Rocket.API;
 using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Chat;
@@ -11,34 +10,18 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Timers;
+using SDG.Unturned;
 
 
 namespace dynmap.core
 {
-    public class DynmapConfiguration : IRocketPluginConfiguration
-    {
-        //Konfigurační soubor
-        public string PrivateKey;
-        public int syncInterval;
-        public string WebCoreAddress;
-        public bool displayInChat;
-        public bool displayIfVanish;
-
-        public void LoadDefaults()
-        {
-            PrivateKey = "MySecretPrivateKey";
-            syncInterval = 5000;
-            WebCoreAddress = "http://localhost";
-            displayInChat = false;
-            displayIfVanish = false;
-
-        }
-    }
-
     public class Dynmap : RocketPlugin<DynmapConfiguration>
     {
+        #region Fields
+        
         //Definice proměnných
         public static Dynmap Instance;
+        
         public List<CSteamID> Nicks = new List<CSteamID>();
         public Timer myTimer;
         public string directory = System.IO.Directory.GetCurrentDirectory();
@@ -60,7 +43,8 @@ namespace dynmap.core
         public string vehicleType;
         public string datavar;
 
-
+        #endregion
+        
         protected override void Load()
         {
             Instance = this;
@@ -70,26 +54,23 @@ namespace dynmap.core
             PrivateKey = Configuration.Instance.PrivateKey;
 
             maps = System.IO.Directory.GetDirectories(Path.GetFullPath(directory + @"/../../../Maps"));
-            foreach (string map in maps)
-            {
-                Rocket.Core.Logging.Logger.Log("Finding map : " + map);
-            }
+
+            for (int i = 0; i < maps.Length; i++)
+                Rocket.Core.Logging.Logger.Log("Finding map : " + maps[i]);
 
 
             //Vypsání map na serveru
-            
-            foreach (string splitMap in maps)
-            {
-                var map = splitMap.Split('\\');
-                int length = map.Length;
-                sendMaps += map[length - 1] + ";";
 
+            for (int i = 0; i < maps.Length; i++)
+            {
+                string[] map = maps[i].Split('\\');
+                
+                sendMaps += map[maps.Length - 1] + ";";
             }
-            
 
 
             //Odeslání map serveru do PHP skriptu
-            var mapUrl = Configuration.Instance.WebCoreAddress + "/dynmap-core.php?user=server&maps=" + Uri.EscapeDataString(sendMaps);
+            string mapUrl = Configuration.Instance.WebCoreAddress + "/dynmap-core.php?user=server&maps=" + Uri.EscapeDataString(sendMaps);
             string postData = "&privatekey=" + PrivateKey;
             var post = Encoding.ASCII.GetBytes(postData);
 
@@ -97,17 +78,13 @@ namespace dynmap.core
             request.Method = "POST";
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = post.Length;
-            using (var stream = request.GetRequestStream())
-            {
+            using (Stream stream = request.GetRequestStream())
                 stream.Write(post, 0, post.Length);
-            }
 
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             using (Stream stream = response.GetResponseStream())
-            {
-                StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                output = reader.ReadToEnd();
-            }
+                using(StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+                    output = reader.ReadToEnd();
 
             //Deaktivuje plugin, pokud se PrivateKey neshoduje
 
@@ -208,33 +185,22 @@ namespace dynmap.core
             myTimer.Enabled = true;
 
             //Přidání hráčů do listu při načtení pluginu
-            int f = 0;
-            foreach (SDG.Unturned.SteamPlayer plr in SDG.Unturned.Provider.clients)
+            for (var i = 0; i < SDG.Unturned.Provider.clients.Count; i++)
             {
-                UnturnedPlayer unturnedPlayer = UnturnedPlayer.FromSteamPlayer(plr);
+                UnturnedPlayer unturnedPlayer = UnturnedPlayer.FromSteamPlayer(Provider.clients[i]);
+                
                 Nicks.Add(unturnedPlayer.CSteamID);
-                f++;
-
             }
 
             //Přidání hráčů do listu při připojení na server
-            U.Events.OnPlayerConnected += (UnturnedPlayer player) =>
-                {
-                    Nicks.Add(player.CSteamID);
-
-
-                };
+            U.Events.OnPlayerConnected += OnPlayerConnected;
+            
             //Odebrání hráčů z listu při odpojení ze serveru
-            U.Events.OnPlayerDisconnected += (UnturnedPlayer player) =>
-                {
-                    Nicks.Remove(player.CSteamID);
-                };
-            U.Events.OnShutdown += () =>
-            {
-                shutdown = true;
-                ShowCords();
-            };
+            U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
+            
+            U.Events.OnShutdown += OnShutdown;
         }
+        
         protected override void Unload()
         {
             Rocket.Core.Logging.Logger.Log("Unloading plugin!");
@@ -251,6 +217,15 @@ namespace dynmap.core
 
         }
 
+        public void OnPlayerConnected(UnturnedPlayer Player) => Nicks.Add(Player.CSteamID);
+
+        public void OnPlayerDisconnected(UnturnedPlayer Player) => Nicks.Remove(Player.CSteamID);
+
+        public void OnShutdown()
+        {
+            shutdown = true;
+            ShowCords();
+        }
         //Zjištění souřadnic
         private void callFunc(object sender, EventArgs e)
         {
@@ -330,73 +305,6 @@ namespace dynmap.core
 
                 if (data != string.Empty) { firstrun = true; } else { firstrun = false; };
             }
-        }
-    }
-    public class CommandSyncInterval : IRocketCommand
-    {
-        
-        public AllowedCaller AllowedCaller
-        {
-            get { return AllowedCaller.Both; }
-        }
-
-        public string Name
-        {
-            get { return "syncinterval"; }
-        }
-
-        public string Help
-        {
-            get { return "Changes syncinterval while running."; }
-        }
-
-        public List<string> Aliases
-        {
-            get { return new List<string>() { "syncint" }; }
-        }
-
-        public string Syntax
-        {
-            get { return "/syncint <Interval>"; }
-        }
-
-        public List<string> Permissions
-        {
-            get
-            {
-                return new List<string>() { "syncinterval" };
-            }
-        }
-
-        public void Execute(IRocketPlayer caller, string[] command)
-        {
-            int Number;
-            if (command.Length == 1 && int.TryParse(command[0], out Number))
-            {
-                if (int.Parse(command[0]) != Dynmap.Instance.Configuration.Instance.syncInterval)
-                {
-                    Dynmap.Instance.Configuration.Instance.syncInterval = int.Parse(command[0]);
-                    Dynmap.Instance.myTimer.Interval = Dynmap.Instance.Configuration.Instance.syncInterval;
-                    UnturnedChat.Say(caller, "Sync Interval is now " + command[0]);
-                }
-                else
-                {
-                    UnturnedChat.Say(caller, "Sync Interval is already " + command[0]);
-                }
-                
-            }
-            else
-            {
-               /* if(command[0] == "workshop")
-                {
-                    //Rocket.Core.Logging.Logger.Log(SDG.Unturned.Provider.currentServerInfo.);
-                    Rocket.Core.Logging.Logger.Log();
-                }*/
-                //Rocket.Core.Logging.Logger(SDG.Unturned.Player.player.name)
-                UnturnedChat.Say(caller, command[0] + " is not a number");
-            }
-
-            //throw new NotImplementedException();
         }
     }
 }
